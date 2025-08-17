@@ -1,0 +1,21 @@
+{
+  "name": "hola-mundo-ci-cd",
+  "version": "1.0.0",
+  "description": "Aplicación Hola Mundo con CI/CD (GitHub Actions, Docker Hub y Render)",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "jest --coverage"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3"
+  },
+  "jest": {
+    "testEnvironment": "node"
+  }
+}
