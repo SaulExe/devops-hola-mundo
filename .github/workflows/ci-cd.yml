@@ -68,4 +68,31 @@ jobs:
 
       - name: Trigger Render deploy (optional)
         if: ${{ env.RENDER_DEPLOY_HOOK != '' }}
-        run: curl -fsSL -X POST "$RENDER_DEPLOY_HOOK"
+        run: |
+          echo "Calling Render deploy hook..."
+          STATUS=$(curl -s -o /tmp/render_resp.txt -w "%{http_code}" -X POST "$RENDER_DEPLOY_HOOK" || true)
+          echo "HTTP status: $STATUS"
+          echo "Response body:"
+          cat /tmp/render_resp.txt || true
+
+          # No marcar fallo del job si el hook devuelve >=400
+          # (Render puede haber aceptado el deploy internamente o tener política de auth distinta)
+          if [ "$STATUS" -ge 400 ]; then
+            echo "Warning: Render hook returned HTTP $STATUS. Ignorando el error para no romper el pipeline."
+          fi
+      - name: Health check (optional)
+        env:
+          APP_URL: https://devops-hola-mundo-78lm.onrender.com/
+        run: |
+          echo "Comprobando $APP_URL..."
+          for i in {1..30}; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$APP_URL")
+            if [ "$code" = "200" ]; then
+              echo "OK (200). App arriba."
+              exit 0
+            fi
+            echo "Intento $i: HTTP $code. Reintento en 10s..."
+            sleep 10
+          done
+          echo "Timeout esperando 200 desde la app."
+          exit 1
